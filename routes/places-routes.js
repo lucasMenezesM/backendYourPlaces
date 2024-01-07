@@ -4,11 +4,18 @@ import * as placeControlers from "../controllers/places-controller.js";
 const router = express.Router();
 
 //GETTING PLACES FROM A PROVIDED USER ID
-router.get("/user/:userId", placeControlers.getPlaceByUserId);
+router.get("/user/:userId", placeControlers.getPlacesByUserId);
 
 //GETTING A SPECIFIC PLACE FROM A PROVIDED PLACE ID
 router.get("/:placeId", placeControlers.getPlaceById);
 
 // CREATE A NEW PLACE
 router.post("/", placeControlers.createNewPlace);
+
+//UPDATE A PLACE
+router.patch("/:placeId", placeControlers.updatePlace);
+
+//DELETE A PLACE
+router.delete("/:placeId", placeControlers.deletePlace);
+
 export default router;
