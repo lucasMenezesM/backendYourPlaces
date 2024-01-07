@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcrypt";
+import { validationResult } from "express-validator";
 
 import HttpError from "../models/http-error.js";
 
@@ -51,6 +52,9 @@ const getUsers = (req, res) => {
 
 // SIGN UP A NEW USER
 const signupUser = (req, res, next) => {
+  const errors = validationResult(req).errors;
+  if (errors.length > 0) return next(new HttpError(errors[0].msg, 400));
+
   const { name, email, password } = req.body;
 
   const hasUser = DUMMY_USERS.find((user) => user.email === email);

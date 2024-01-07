@@ -1,5 +1,6 @@
 import HttpError from "../models/http-error.js";
 import { v4 as uuid } from "uuid";
+import { validationResult } from "express-validator";
 
 let DUMMY_PLACES = [
   {
@@ -126,6 +127,10 @@ const getPlacesByUserId = (req, res, next) => {
 
 // CREATE A NEW PLACE
 const createNewPlace = (req, res, next) => {
+  // validation
+  const result = validationResult(req).errors;
+  if (result.length > 0) return next(new HttpError(result[0].msg, 400));
+
   const { title, address, description, location, user_id } = req.body;
 
   const createdPlace = {
@@ -139,11 +144,15 @@ const createNewPlace = (req, res, next) => {
 
   DUMMY_PLACES.push(createdPlace);
 
-  res.status(202).json(createdPlace);
+  res.status(201).json(createdPlace);
 };
 
 //UPDATE A PLACE
 const updatePlace = (req, res, next) => {
+  // validation
+  const result = validationResult(req).errors;
+  if (result.length > 0) return next(new HttpError(result[0].msg, 400));
+
   const placeId = req.params.placeId;
   const { title, description } = req.body;
 

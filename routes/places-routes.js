@@ -1,5 +1,9 @@
 import express from "express";
 import * as placeControlers from "../controllers/places-controller.js";
+import {
+  createPlaceValidation,
+  updatePlaceValidation,
+} from "../models/input-validations.js";
 
 const router = express.Router();
 
@@ -10,10 +14,10 @@ router.get("/user/:userId", placeControlers.getPlacesByUserId);
 router.get("/:placeId", placeControlers.getPlaceById);
 
 // CREATE A NEW PLACE
-router.post("/", placeControlers.createNewPlace);
+router.post("/", createPlaceValidation, placeControlers.createNewPlace);
 
 //UPDATE A PLACE
-router.patch("/:placeId", placeControlers.updatePlace);
+router.patch("/:placeId", updatePlaceValidation, placeControlers.updatePlace);
 
 //DELETE A PLACE
 router.delete("/:placeId", placeControlers.deletePlace);
