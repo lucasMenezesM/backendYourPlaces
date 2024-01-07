@@ -3,6 +3,7 @@ import morgan from "morgan";
 
 import HttpError from "./models/http-error.js";
 import placesRoutes from "./routes/places-routes.js";
+import usersRoutes from "./routes/users-routes.js";
 
 const PORT = 5000;
 const app = express();
@@ -11,7 +12,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(morgan("dev"));
 
+// ROUTES
 app.use("/api/places", placesRoutes);
+app.use("/api/users", usersRoutes);
 
 app.use((req, res) => {
   throw new HttpError("Could not find this route.", 404);
