@@ -1,13 +1,16 @@
-import HttpError from "../models/http-error.js";
 import { v4 as uuid } from "uuid";
 import { validationResult } from "express-validator";
+import axios from "axios";
+
+import getCoordByAddress from "../util/location.js";
+import HttpError from "../models/http-error.js";
 
 let DUMMY_PLACES = [
   {
     id: "p1",
     title: "aldeia da folha",
     description: "a aldeia liderada pelo hokage naruto uzumaki da folha",
-    location: {
+    coordinates: {
       lat: -12.5953411,
       lgt: -71.4770275,
     },
@@ -19,7 +22,7 @@ let DUMMY_PLACES = [
     id: "p2",
     title: "vila da folha 2",
     description: "a aldeia liderada pelo hokage naruto uzumaki da folha",
-    location: {
+    coordinates: {
       lat: -12.5953411,
       lgt: -71.4770275,
     },
@@ -31,7 +34,7 @@ let DUMMY_PLACES = [
     id: "p3",
     title: "Copa Cabana",
     description: "A beautiful beach in Rio de Janeiro",
-    location: {
+    coordinates: {
       lat: -12.5953411,
       lgt: -71.4770275,
     },
@@ -42,7 +45,7 @@ let DUMMY_PLACES = [
     id: "p4",
     title: "Sugarloaf Mountain",
     description: "Iconic peak in Rio de Janeiro with breathtaking views",
-    location: {
+    coordinates: {
       lat: -22.9518741,
       lgt: -43.1633923,
     },
@@ -53,7 +56,7 @@ let DUMMY_PLACES = [
     id: "p5",
     title: "Christ the Redeemer",
     description: "Famous statue overlooking Rio de Janeiro",
-    location: {
+    coordinates: {
       lat: -22.9518142,
       lgt: -43.2105269,
     },
@@ -64,7 +67,7 @@ let DUMMY_PLACES = [
     id: "p6",
     title: "Ipanema Beach",
     description: "Famous beach known for its vibrant atmosphere",
-    location: {
+    coordinates: {
       lat: -22.9852433,
       lgt: -43.2013727,
     },
@@ -75,7 +78,7 @@ let DUMMY_PLACES = [
     id: "p7",
     title: "Maracanã Stadium",
     description: "Iconic football stadium in Rio de Janeiro",
-    location: {
+    coordinates: {
       lat: -22.912825,
       lgt: -43.2301435,
     },
@@ -87,7 +90,7 @@ let DUMMY_PLACES = [
     id: "p8",
     title: "Tijuca Forest",
     description: "Largest urban rainforest in the world",
-    location: {
+    coordinates: {
       lat: -22.9515693,
       lgt: -43.2703127,
     },
@@ -126,22 +129,28 @@ const getPlacesByUserId = (req, res, next) => {
 };
 
 // CREATE A NEW PLACE
-const createNewPlace = (req, res, next) => {
+const createNewPlace = async (req, res, next) => {
   // validation
   const result = validationResult(req).errors;
   if (result.length > 0) return next(new HttpError(result[0].msg, 400));
 
-  const { title, address, description, location, user_id } = req.body;
+  const { title, address, description, user_id } = req.body;
+
+  let coordinates;
+  try {
+    coordinates = await getCoordByAddress(address);
+  } catch (err) {
+    return next(err);
+  }
 
   const createdPlace = {
     id: uuid(),
     title,
     description,
     address,
-    location,
+    coordinates,
     user_id,
   };
-
   DUMMY_PLACES.push(createdPlace);
 
   res.status(201).json(createdPlace);
@@ -169,8 +178,12 @@ const updatePlace = (req, res, next) => {
 };
 
 //DELETE A PLACE
-const deletePlace = (req, res) => {
+const deletePlace = (req, res, next) => {
   const { placeId } = req.params;
+  const identifiedPlace = DUMMY_PLACES.find((place) => place.id === placeId);
+  if (!identifiedPlace)
+    return next(new HttpError("Could not delete the place. Id not found", 422));
+
   DUMMY_PLACES = DUMMY_PLACES.filter((place) => place.id !== placeId);
   res.status(200).json({ message: "Place deleted", DUMMY_PLACES });
 };
