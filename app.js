@@ -1,5 +1,8 @@
 import express from "express";
 import morgan from "morgan";
+import mongoose from "mongoose";
+import { config } from "dotenv";
+config();
 
 import HttpError from "./models/http-error.js";
 import placesRoutes from "./routes/places-routes.js";
@@ -30,4 +33,10 @@ app.use((error, req, res, next) => {
     .json({ message: error.message || "An unknown error has occurred" });
 });
 
-app.listen(PORT, () => console.log("BackEnd running on port " + PORT));
+mongoose
+  .connect(process.env.DBUrl)
+  .then(() => {
+    console.log("DataBase connected");
+    app.listen(PORT, () => console.log("BackEnd running on port " + PORT));
+  })
+  .catch((err) => console.log(err.message));

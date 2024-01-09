@@ -5,7 +5,6 @@ export default async function getCoordByAddress(address) {
   const location = await axios.get(
     `https://nominatim.openstreetmap.org/search?q=${address}&format=jsonv2`
   );
-  console.log(location.data);
 
   if (location.data.length === 0) {
     throw new HttpError(
