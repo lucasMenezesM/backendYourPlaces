@@ -32,7 +32,7 @@ const updatePlaceValidation = checkSchema({
 const signupValidation = checkSchema({
   name: notEmpty("Name should not be empty"),
   email: {
-    normalizeEmail: true,
+    // normalizeEmail: true,
     isEmail: {
       errorMessage: "invalid email",
     },

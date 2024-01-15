@@ -2,6 +2,7 @@ import express from "express";
 import morgan from "morgan";
 import mongoose from "mongoose";
 import { config } from "dotenv";
+import cors from "cors";
 config();
 
 import HttpError from "./models/http-error.js";
@@ -11,9 +12,22 @@ import usersRoutes from "./routes/users-routes.js";
 const PORT = 5000;
 const app = express();
 
+app.use(cors());
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(morgan("dev"));
+
+// app.use((req, res, next) => {
+//   res.setHeader("Access-Control-Allow-Origin", "*");
+//   res.setHeader(
+//     "Access-Control-Allow-Headers",
+//     "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+//   );
+
+//   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE");
+//   next();
+// });
 
 // ROUTES
 app.use("/api/places", placesRoutes);
