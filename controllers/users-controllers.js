@@ -62,6 +62,8 @@ const getUsers = async (req, res) => {
 
 //* SIGN UP A NEW USER
 const signupUser = async (req, res, next) => {
+  console.log(req.file);
+  console.log(req.body);
   const errors = validationResult(req).errors;
   if (errors.length > 0) return next(new HttpError(errors[0].msg, 400));
 
@@ -89,8 +91,7 @@ const signupUser = async (req, res, next) => {
       name,
       email,
       password: hash,
-      image:
-        "https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+      image: req.file.path,
       places: [],
     });
 
@@ -102,7 +103,10 @@ const signupUser = async (req, res, next) => {
       );
     }
 
-    res.status(201).json({ message: `User ${name} created successfully` });
+    res.status(201).json({
+      message: "User created successfully",
+      user: newUser.toObject({ getters: true }),
+    });
   });
 };
 
@@ -126,7 +130,7 @@ const loginUser = async (req, res, next) => {
     if (!result || err)
       return next(new HttpError("Loggin failed, password or email migth be incorrect", 401));
 
-    res.status(200).json({ message: "user logged in" });
+    res.status(200).json({ message: "user logged in", user: identifiedUser.toObject({ getters: true }) });
   });
 };
 

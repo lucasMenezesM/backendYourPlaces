@@ -1,5 +1,5 @@
-import { v4 as uuid } from "uuid";
 import { validationResult } from "express-validator";
+import fs from "fs";
 import mongoose from "mongoose";
 
 import getCoordByAddress from "../util/location.js";
@@ -145,11 +145,13 @@ const getPlacesByUserId = async (req, res, next) => {
 
   return res
     .status(200)
-    .json(places.map((place) => place.toObject({ getters: true })));
+    .json({ places: places.map((place) => place.toObject({ getters: true })) });
 };
 
 // CREATE A NEW PLACE
 const createNewPlace = async (req, res, next) => {
+  console.log(req.file);
+  console.log(req.body);
   // validation
   const result = validationResult(req).errors;
   if (result.length > 0) return next(new HttpError(result[0].msg, 400));
@@ -168,8 +170,7 @@ const createNewPlace = async (req, res, next) => {
     description,
     address,
     coordinates,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Vue_de_nuit_de_la_Place_Stanislas_%C3%A0_Nancy.jpg/1200px-Vue_de_nuit_de_la_Place_Stanislas_%C3%A0_Nancy.jpg",
+    image: req.file.path,
     user_id,
   });
   let user;
@@ -257,6 +258,10 @@ const deletePlace = async (req, res, next) => {
   } catch (err) {
     return next(new HttpError("Could not delete this place, try again", 500));
   }
+
+  fs.unlink(deletedPlace.image, (err) => {
+    console.log(err);
+  });
 
   res.status(200).json({ message: "Place deleted" });
 };

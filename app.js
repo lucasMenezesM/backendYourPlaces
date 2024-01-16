@@ -1,7 +1,12 @@
 import express from "express";
+import fs from "fs";
+import path from "path";
 import morgan from "morgan";
 import mongoose from "mongoose";
 import { config } from "dotenv";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
 import cors from "cors";
 config();
 
@@ -17,6 +22,11 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(morgan("dev"));
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+app.use("/uploads/images", express.static(__dirname + "/uploads/images"));
 
 // app.use((req, res, next) => {
 //   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -38,9 +48,12 @@ app.use((req, res) => {
 });
 
 app.use((error, req, res, next) => {
-  if (res.headerSent) {
-    return next(error);
-  }
+  if (req.file)
+    fs.unlink(req.file.path, (err) => {
+      console.log(err);
+    });
+
+  if (res.headerSent) return next(error);
 
   res
     .status(error.code || 500)

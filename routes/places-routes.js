@@ -4,6 +4,7 @@ import {
   createPlaceValidation,
   updatePlaceValidation,
 } from "../models/input-validations.js";
+import fileUpload from "../middlewares/file-upload.js";
 
 const router = express.Router();
 
@@ -13,8 +14,9 @@ router.get("/user/:userId", placeControlers.getPlacesByUserId);
 //GETTING A SPECIFIC PLACE FROM A PROVIDED PLACE ID
 router.get("/:placeId", placeControlers.getPlaceById);
 
+//prettier-ignore
 // CREATE A NEW PLACE
-router.post("/", createPlaceValidation, placeControlers.createNewPlace);
+router.post("/", fileUpload.single("image"), createPlaceValidation, placeControlers.createNewPlace);
 
 //UPDATE A PLACE
 router.patch("/:placeId", updatePlaceValidation, placeControlers.updatePlace);
