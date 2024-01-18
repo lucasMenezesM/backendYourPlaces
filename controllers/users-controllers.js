@@ -1,9 +1,13 @@
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcrypt";
 import { validationResult } from "express-validator";
+import jwt from "jsonwebtoken";
+import { config } from "dotenv";
 
 import User from "../models/users-model.js";
 import HttpError from "../models/http-error.js";
+
+config();
 
 const saltRounds = 10;
 
@@ -47,7 +51,7 @@ let DUMMY_USERS = [
 ];
 
 //* GET ALL USERS
-const getUsers = async (req, res) => {
+const getUsers = async (req, res, next) => {
   let users;
   try {
     users = await User.find({}, "-password");
@@ -103,10 +107,22 @@ const signupUser = async (req, res, next) => {
       );
     }
 
-    res.status(201).json({
-      message: "User created successfully",
-      user: newUser.toObject({ getters: true }),
-    });
+    let token;
+    try {
+      token = jwt.sign(
+        { userId: newUser.id, email: newUser.email },
+        process.env.secretKey,
+        { expiresIn: "1h" }
+      );
+    } catch (err) {
+      return next(
+        new HttpError("Something went wrong, could not sign up user", 500)
+      );
+    }
+
+    res
+      .status(201)
+      .json({ userId: newUser.id, message: "User created.", token: token });
   });
 };
 
@@ -130,7 +146,20 @@ const loginUser = async (req, res, next) => {
     if (!result || err)
       return next(new HttpError("Loggin failed, password or email migth be incorrect", 401));
 
-    res.status(200).json({ message: "user logged in", user: identifiedUser.toObject({ getters: true }) });
+    let token;
+    try {
+      token = jwt.sign(
+        { userId: identifiedUser.id, email: identifiedUser.email },
+        process.env.secretKey,
+        { expiresIn: "1h" }
+      );
+    } catch (err) {
+      return next(
+        new HttpError("Something went wrong, could not loggin user", 500)
+      );
+    }
+
+    res.status(200).json({message: "User Logged in", token: token, userId: identifiedUser.id});
   });
 };
 

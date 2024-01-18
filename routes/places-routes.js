@@ -4,6 +4,7 @@ import {
   createPlaceValidation,
   updatePlaceValidation,
 } from "../models/input-validations.js";
+import checkAuth from "../middlewares/check-auth.js";
 import fileUpload from "../middlewares/file-upload.js";
 
 const router = express.Router();
@@ -13,6 +14,9 @@ router.get("/user/:userId", placeControlers.getPlacesByUserId);
 
 //GETTING A SPECIFIC PLACE FROM A PROVIDED PLACE ID
 router.get("/:placeId", placeControlers.getPlaceById);
+
+// Authentication
+router.use(checkAuth);
 
 //prettier-ignore
 // CREATE A NEW PLACE

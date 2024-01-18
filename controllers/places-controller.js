@@ -137,12 +137,6 @@ const getPlacesByUserId = async (req, res, next) => {
     );
   }
 
-  if (places.length === 0) {
-    return next(
-      new HttpError("Could not find any place for the provided user id", 404)
-    );
-  }
-
   return res
     .status(200)
     .json({ places: places.map((place) => place.toObject({ getters: true })) });
@@ -212,20 +206,27 @@ const updatePlace = async (req, res, next) => {
 
   let updatedPlace;
   try {
-    updatedPlace = await Place.findOneAndUpdate(
-      { _id: placeId },
-      {
-        title: title,
-        description: description,
-      },
-      { new: true }
-    );
+    updatedPlace = await Place.findById(placeId);
   } catch (error) {
     return next(new HttpError("Something went wrong, place not found", 500));
   }
 
   if (!updatedPlace)
     return next(new HttpError("Something went wrong, place not found", 500));
+
+  console.log(req.userData, updatedPlace.user_id.toString());
+
+  if (updatedPlace.user_id.toString() !== req.userData.userId)
+    return next(new HttpError("You cannot edit this place", 401));
+
+  updatedPlace.title = title;
+  updatedPlace.description = description;
+
+  try {
+    await updatedPlace.save();
+  } catch (err) {
+    return next(new HttpError("Creating place failed", 500));
+  }
 
   res.json(updatedPlace.toObject({ getters: true }));
 };
@@ -245,6 +246,10 @@ const deletePlace = async (req, res, next) => {
 
   if (!deletedPlace)
     return next(new HttpError("Could not find this place", 404));
+
+  console.log(deletedPlace.user_id.id, req.userData.userId);
+  if (deletedPlace.user_id.id !== req.userData.userId)
+    return next(new HttpError("you cannot delete this place", 401));
 
   try {
     const session = await mongoose.startSession();
