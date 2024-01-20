@@ -110,7 +110,10 @@ const signupUser = async (req, res, next) => {
     let token;
     try {
       token = jwt.sign(
-        { userId: newUser.id, email: newUser.email },
+        {
+          userId: newUser.id,
+          email: newUser.email,
+        },
         process.env.secretKey,
         { expiresIn: "1h" }
       );
@@ -122,7 +125,12 @@ const signupUser = async (req, res, next) => {
 
     res
       .status(201)
-      .json({ userId: newUser.id, message: "User created.", token: token });
+      .json({
+        userId: newUser.id,
+        message: "User created.",
+        token: token,
+        expiration: new Date().getTime() + 1 * 60 * 60 * 1000,
+      });
   });
 };
 

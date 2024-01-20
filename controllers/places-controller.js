@@ -130,7 +130,6 @@ const getPlacesByUserId = async (req, res, next) => {
   let places;
   try {
     places = await Place.find({ user_id: userId });
-    console.log(places);
   } catch (err) {
     return next(
       new HttpError("Something went wrong could not find a place", 500)
@@ -144,8 +143,6 @@ const getPlacesByUserId = async (req, res, next) => {
 
 // CREATE A NEW PLACE
 const createNewPlace = async (req, res, next) => {
-  console.log(req.file);
-  console.log(req.body);
   // validation
   const result = validationResult(req).errors;
   if (result.length > 0) return next(new HttpError(result[0].msg, 400));
@@ -177,9 +174,6 @@ const createNewPlace = async (req, res, next) => {
   }
 
   if (!user) return next(new HttpError("User id not found", 404));
-
-  console.log(user);
-  console.log(createdPlace);
 
   try {
     const sess = await mongoose.startSession();
@@ -214,11 +208,6 @@ const updatePlace = async (req, res, next) => {
   if (!updatedPlace)
     return next(new HttpError("Something went wrong, place not found", 500));
 
-  console.log(req.userData, updatedPlace.user_id.toString());
-
-  if (updatedPlace.user_id.toString() !== req.userData.userId)
-    return next(new HttpError("You cannot edit this place", 401));
-
   updatedPlace.title = title;
   updatedPlace.description = description;
 
@@ -247,10 +236,6 @@ const deletePlace = async (req, res, next) => {
   if (!deletedPlace)
     return next(new HttpError("Could not find this place", 404));
 
-  console.log(deletedPlace.user_id.id, req.userData.userId);
-  if (deletedPlace.user_id.id !== req.userData.userId)
-    return next(new HttpError("you cannot delete this place", 401));
-
   try {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -261,7 +246,9 @@ const deletePlace = async (req, res, next) => {
 
     await session.commitTransaction();
   } catch (err) {
-    return next(new HttpError("Could not delete this place, try again", 500));
+    return next(
+      new HttpError("Could not delete this place, try again later", 500)
+    );
   }
 
   fs.unlink(deletedPlace.image, (err) => {
